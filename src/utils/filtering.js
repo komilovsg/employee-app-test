@@ -2,29 +2,28 @@ export const filterAndSortEmployees = (
   employees,
   { showArchived, searchQuery, sortField, sortDirection, roleFilter }
 ) => {
-  let filteredEmployees = [...employees];
+  // Создаем копию массива только если нужно сортировать
+  let filteredEmployees = sortField ? [...employees] : employees;
 
-  // Фильтрация по архиву
-  filteredEmployees = filteredEmployees.filter(
-    (emp) => emp.isArchive === showArchived
-  );
+  // Применяем фильтры последовательно
+  filteredEmployees = filteredEmployees.filter((emp) => {
+    // Фильтр по архиву
+    if (emp.isArchive !== showArchived) return false;
 
-  // Фильтрация по должности
-  if (roleFilter) {
-    filteredEmployees = filteredEmployees.filter(
-      (emp) => emp.role === roleFilter
-    );
-  }
+    // Фильтр по должности
+    if (roleFilter && emp.role !== roleFilter) return false;
 
-  // Фильтрация по поиску
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    filteredEmployees = filteredEmployees.filter((emp) =>
-      emp.name.toLowerCase().includes(query)
-    );
-  }
+    // Фильтр по поиску
+    if (
+      searchQuery &&
+      !emp.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+      return false;
 
-  // Сортировка
+    return true;
+  });
+
+  // Сортировка только если указано поле и направление
   if (sortField && sortDirection) {
     filteredEmployees.sort((a, b) => {
       const aValue = a[sortField].toLowerCase();

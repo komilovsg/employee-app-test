@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { addEmployee } from "../redux/employeeSlice";
+import { addEmployeeAsync } from "../redux/employeeSlice";
+import toast from "react-hot-toast";
 import "../styles/EmployeeEdit.scss";
 
 const EmployeeAdd = () => {
@@ -15,92 +16,103 @@ const EmployeeAdd = () => {
     isArchive: false,
   });
   const [errors, setErrors] = useState({});
-
-  const convertDateForStorage = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const [year, month, day] = dateString.split("-");
-      return `${day}.${month}.${year}`;
-    } catch {
-      return "";
-    }
-  };
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
+
     if (!formData.name.trim()) {
       newErrors.name = "Имя обязательно для заполнения";
+    } else if (formData.name.length < 2) {
+      newErrors.name = "Имя должно содержать минимум 2 символа";
     }
 
-    const phoneDigits = formData.phone.replace(/\D/g, "");
-    if (!phoneDigits) {
-      newErrors.phone = "Номер телефона обязателен для заполнения";
-    } else if (phoneDigits.length !== 11) {
-      newErrors.phone = "Номер телефона должен содержать 11 цифр";
-    } else if (phoneDigits[1] === "0") {
-      newErrors.phone = "Номер не может начинаться с 0 после кода страны";
+    if (!formData.role) {
+      newErrors.role = "Выберите должность";
+    }
+
+    if (!formData.phone) {
+      newErrors.phone = "Введите номер телефона";
+    } else {
+      const phoneRegex = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        newErrors.phone = "Неверный формат номера телефона";
+      }
     }
 
     if (!formData.birthday) {
-      newErrors.birthday = "Дата рождения обязательна для заполнения";
+      newErrors.birthday = "Введите дату рождения";
+    } else {
+      const birthdayDate = new Date(formData.birthday);
+      const today = new Date();
+      if (birthdayDate > today) {
+        newErrors.birthday = "Дата рождения не может быть в будущем";
+      }
+      if (today.getFullYear() - birthdayDate.getFullYear() < 18) {
+        newErrors.birthday = "Сотрудник должен быть старше 18 лет";
+      }
     }
-    if (!formData.role) {
-      newErrors.role = "Должность обязательна для заполнения";
-    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
-
   const handlePhoneChange = (e) => {
-    let value = e.target.value;
-    const digits = value.replace(/\D/g, "");
-    const truncatedDigits = digits.substring(0, 11);
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
     let formattedValue = "";
-    if (truncatedDigits.length > 0) {
-      formattedValue = "+7";
-      if (truncatedDigits.length > 1) {
-        formattedValue += ` (${truncatedDigits.substring(1, 4)}`;
-      }
-      if (truncatedDigits.length > 4) {
-        formattedValue += `) ${truncatedDigits.substring(4, 7)}`;
-      }
-      if (truncatedDigits.length > 7) {
-        formattedValue += `-${truncatedDigits.substring(7, 9)}`;
-      }
-      if (truncatedDigits.length > 9) {
-        formattedValue += `-${truncatedDigits.substring(9, 11)}`;
+
+    if (value.length > 0) {
+      formattedValue = "+7 (";
+      if (value.length <= 3) {
+        formattedValue += value;
+      } else if (value.length <= 6) {
+        formattedValue += `${value.slice(0, 3)}) ${value.slice(3)}`;
+      } else if (value.length <= 8) {
+        formattedValue += `${value.slice(0, 3)}) ${value.slice(
+          3,
+          6
+        )}-${value.slice(6)}`;
+      } else {
+        formattedValue += `${value.slice(0, 3)}) ${value.slice(
+          3,
+          6
+        )}-${value.slice(6, 8)}-${value.slice(8, 10)}`;
       }
     }
-    setFormData({
-      ...formData,
-      phone: formattedValue,
-    });
+
+    setFormData((prev) => ({ ...prev, phone: formattedValue }));
     if (errors.phone) {
-      setErrors({ ...errors, phone: "" });
+      setErrors((prev) => ({ ...prev, phone: null }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
+
+    if (!validateForm()) {
+      toast.error("Пожалуйста, исправьте ошибки в форме");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const [year, month, day] = formData.birthday.split("-");
+      const formattedBirthday = `${day}.${month}.${year}`;
+
       const newEmployee = {
         ...formData,
         id: Date.now(),
-        birthday: convertDateForStorage(formData.birthday),
+        birthday: formattedBirthday,
       };
-      dispatch(addEmployee(newEmployee));
+
+      await dispatch(addEmployeeAsync(newEmployee)).unwrap();
+      toast.success("Сотрудник успешно добавлен");
       navigate("/");
+    } catch (err) {
+      console.error("Error adding employee:", err);
+      toast.error("Произошла ошибка при добавлении сотрудника");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -109,51 +121,27 @@ const EmployeeAdd = () => {
       <h2>Добавление сотрудника</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Имя:</label>
+          <label htmlFor="name">ФИО:</label>
           <input
             type="text"
-            name="name"
+            id="name"
             value={formData.name}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             className={errors.name ? "error" : ""}
           />
-          {errors.name && <div className="error-message">{errors.name}</div>}
+          {errors.name && <span className="error-message">{errors.name}</span>}
         </div>
 
         <div className="form-group">
-          <label>Телефон:</label>
-          <input
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handlePhoneChange}
-            className={errors.phone ? "error" : ""}
-            placeholder="+7 (___) ___-__-__"
-            maxLength="18"
-          />
-          {errors.phone && <div className="error-message">{errors.phone}</div>}
-        </div>
-
-        <div className="form-group">
-          <label>Дата рождения:</label>
-          <input
-            type="date"
-            name="birthday"
-            value={formData.birthday}
-            onChange={handleChange}
-            className={errors.birthday ? "error" : ""}
-          />
-          {errors.birthday && (
-            <div className="error-message">{errors.birthday}</div>
-          )}
-        </div>
-
-        <div className="form-group">
-          <label>Должность:</label>
+          <label htmlFor="role">Должность:</label>
           <select
-            name="role"
+            id="role"
             value={formData.role}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, role: e.target.value }))
+            }
             className={errors.role ? "error" : ""}
           >
             <option value="">Выберите должность</option>
@@ -161,30 +149,63 @@ const EmployeeAdd = () => {
             <option value="waiter">Официант</option>
             <option value="driver">Водитель</option>
           </select>
-          {errors.role && <div className="error-message">{errors.role}</div>}
+          {errors.role && <span className="error-message">{errors.role}</span>}
         </div>
 
         <div className="form-group">
-          <div className="checkbox-group">
+          <label htmlFor="phone">Телефон:</label>
+          <input
+            type="tel"
+            id="phone"
+            value={formData.phone}
+            onChange={handlePhoneChange}
+            placeholder="+7 (XXX) XXX-XX-XX"
+            className={errors.phone ? "error" : ""}
+          />
+          {errors.phone && (
+            <span className="error-message">{errors.phone}</span>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="birthday">Дата рождения:</label>
+          <input
+            type="date"
+            id="birthday"
+            value={formData.birthday}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, birthday: e.target.value }))
+            }
+            className={errors.birthday ? "error" : ""}
+          />
+          {errors.birthday && (
+            <span className="error-message">{errors.birthday}</span>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>
             <input
               type="checkbox"
-              name="isArchive"
               checked={formData.isArchive}
-              onChange={handleChange}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  isArchive: e.target.checked,
+                }))
+              }
             />
-            <label>В архиве</label>
-          </div>
+            В архиве
+          </label>
         </div>
 
         <div className="form-actions">
-          <button
-            type="button"
-            className="cancel"
-            onClick={() => navigate("/")}
-          >
+          <button type="button" onClick={() => navigate("/")}>
             Отмена
           </button>
-          <button type="submit">Добавить</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Добавление..." : "Добавить"}
+          </button>
         </div>
       </form>
     </div>

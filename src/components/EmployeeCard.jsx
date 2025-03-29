@@ -1,7 +1,8 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { updateEmployee, toggleArchive } from "../redux/employeeSlice";
+import { updateEmployeeAsync } from "../redux/employeeSlice";
+import toast from "react-hot-toast";
 import "../styles/EmployeeCard.scss";
 
 const EmployeeCard = ({ employee }) => {
@@ -9,22 +10,31 @@ const EmployeeCard = ({ employee }) => {
   const navigate = useNavigate();
 
   const handleCardClick = (e) => {
-    // Предотвращаем переход к редактированию при клике на кнопки
-    if (e.target.closest(".employee-actions")) {
-      return;
+    if (!e.target.closest(".archive-button")) {
+      navigate(`/edit/${employee.id}`);
     }
-    navigate(`/edit/${employee.id}`);
   };
 
-  const handleArchive = (e) => {
-    e.stopPropagation(); // Предотвращаем всплытие события
-    dispatch(toggleArchive(employee.id));
+  const handleArchive = async (e) => {
+    e.stopPropagation();
+    try {
+      const updatedEmployee = {
+        ...employee,
+        isArchive: !employee.isArchive,
+      };
+      await dispatch(updateEmployeeAsync(updatedEmployee)).unwrap();
+      const action = employee.isArchive ? "восстановлен" : "архивирован";
+      toast.success(`Сотрудник успешно ${action}`);
+    } catch (err) {
+      console.error("Error updating employee:", err);
+      toast.error("Произошла ошибка при изменении статуса сотрудника");
+    }
   };
 
   const handleDelete = (e) => {
-    e.stopPropagation(); // Предотвращаем всплытие события
+    e.stopPropagation();
     if (window.confirm("Вы уверены, что хотите удалить этого сотрудника?")) {
-      dispatch(updateEmployee({ ...employee, isDeleted: true }));
+      dispatch(updateEmployeeAsync({ ...employee, isDeleted: true }));
     }
   };
 
@@ -49,8 +59,12 @@ const EmployeeCard = ({ employee }) => {
         <p>Телефон: {employee.phone}</p>
       </div>
       <div className="employee-actions">
-        <button className="archive" onClick={handleArchive}>
-          {employee.isArchive ? "Восстановить" : "В архив"}
+        <button
+          className="archive-button"
+          onClick={handleArchive}
+          title={employee.isArchive ? "Восстановить" : "Архивировать"}
+        >
+          {employee.isArchive ? "Восстановить" : "Архивировать"}
         </button>
         <button className="delete" onClick={handleDelete}>
           Удалить
