@@ -1,0 +1,25 @@
+.employee-sort {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+
+  select,
+  button {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  button {
+    background: #007bff;
+    color: white;
+    border: none;
+    transition: 0.3s;
+
+    &:hover {
+      background: #0056b3;
+    }
+  }
+}

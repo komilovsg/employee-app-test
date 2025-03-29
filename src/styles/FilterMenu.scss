@@ -1,0 +1,77 @@
+.filter-menu {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #666;
+      cursor: pointer;
+
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 150px;
+    font-size: 14px;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+  }
+
+  .sort-buttons {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+
+    @media (max-width: 768px) {
+      margin-left: 0;
+      justify-content: flex-start;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      background-color: #f8f9fa;
+      color: #333;
+      border: 1px solid #ddd;
+
+      &:hover {
+        background-color: #e9ecef;
+      }
+
+      &.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+.employee-filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+
+  input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 150px;
+  }
+
+  button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+      background: #0056b3;
+    }
+  }
+}

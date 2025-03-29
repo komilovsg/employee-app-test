@@ -1,0 +1,83 @@
+.employee-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .archive-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 4px 8px;
+    background-color: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+  }
+
+  h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+
+  .employee-info {
+    margin-bottom: 15px;
+
+    p {
+      margin: 5px 0;
+      color: #666;
+
+      strong {
+        color: #333;
+        margin-right: 5px;
+      }
+    }
+  }
+
+  .employee-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+
+      &.archive {
+        background-color: #6c757d;
+        color: white;
+
+        &:hover {
+          background-color: #5a6268;
+        }
+      }
+
+      &.delete {
+        background-color: #dc3545;
+        color: white;
+
+        &:hover {
+          background-color: #c82333;
+        }
+      }
+    }
+  }
+
+  &.archived {
+    opacity: 0.7;
+    background-color: #f8f9fa;
+  }
+}
