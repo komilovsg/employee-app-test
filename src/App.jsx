@@ -6,7 +6,6 @@ import EmployeeList from "./components/EmployeeList";
 import LoadingSpinner from "./components/LoadingSpinner";
 import "./styles/App.scss";
 
-// Ленивая загрузка компонентов
 const EmployeeEdit = lazy(() => import("./pages/EmployeeEdit"));
 const EmployeeAdd = lazy(() => import("./pages/EmployeeAdd"));
 

@@ -26,8 +26,12 @@
       label {
         display: block;
         margin-bottom: 8px;
-        color: #555;
+        color: #666;
         font-weight: 500;
+
+        input[type="checkbox"] {
+          margin-right: 8px;
+        }
       }
 
       input[type="text"],

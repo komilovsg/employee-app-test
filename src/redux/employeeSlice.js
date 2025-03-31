@@ -2,11 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import employeesData from "../data/employees.json";
 import { createSelector } from "reselect";
 
-// Асинхронные действия
 export const addEmployeeAsync = createAsyncThunk(
   "employees/addEmployee",
   async (employee) => {
-    // В реальном приложении здесь был бы API-запрос
     return employee;
   }
 );
@@ -18,6 +16,13 @@ export const updateEmployeeAsync = createAsyncThunk(
   }
 );
 
+export const deleteEmployeeAsync = createAsyncThunk(
+  "employees/deleteEmployee",
+  async (employeeId) => {
+    return employeeId;
+  }
+);
+
 const initialState = {
   employees: employeesData.employees,
   searchQuery: "",
@@ -26,9 +31,9 @@ const initialState = {
   showArchived: false,
   currentPage: 1,
   roleFilter: "",
+  itemsPerPage: 12,
 };
 
-// Селекторы для оптимизации производительности
 export const selectEmployees = (state) => state.employees.employees;
 export const selectSearchQuery = (state) => state.employees.searchQuery;
 export const selectSortField = (state) => state.employees.sortField;
@@ -37,7 +42,6 @@ export const selectShowArchived = (state) => state.employees.showArchived;
 export const selectRoleFilter = (state) => state.employees.roleFilter;
 export const selectCurrentPage = (state) => state.employees.currentPage;
 
-// Мемоизированный селектор для фильтрации и сортировки
 export const selectFilteredEmployees = createSelector(
   [selectEmployees, selectSearchQuery, selectRoleFilter, selectShowArchived],
   (employees, searchQuery, roleFilter, showArchived) => {
@@ -47,7 +51,6 @@ export const selectFilteredEmployees = createSelector(
         return false;
       }
 
-      // Фильтр по поиску
       if (
         searchQuery &&
         !employee.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -55,7 +58,6 @@ export const selectFilteredEmployees = createSelector(
         return false;
       }
 
-      // Фильтр по должности
       if (roleFilter && employee.role !== roleFilter) {
         return false;
       }
@@ -139,6 +141,11 @@ const employeeSlice = createSlice({
         if (index !== -1) {
           state.employees[index] = action.payload;
         }
+      })
+      .addCase(deleteEmployeeAsync.fulfilled, (state, action) => {
+        state.employees = state.employees.filter(
+          (emp) => emp.id !== action.payload
+        );
       });
   },
 });

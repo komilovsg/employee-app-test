@@ -1,7 +1,10 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { updateEmployeeAsync } from "../redux/employeeSlice";
+import {
+  updateEmployeeAsync,
+  deleteEmployeeAsync,
+} from "../redux/employeeSlice";
 import toast from "react-hot-toast";
 import "../styles/EmployeeCard.scss";
 
@@ -10,7 +13,10 @@ const EmployeeCard = ({ employee }) => {
   const navigate = useNavigate();
 
   const handleCardClick = (e) => {
-    if (!e.target.closest(".archive-button")) {
+    if (
+      !e.target.closest(".archive-button") &&
+      !e.target.closest(".delete-button")
+    ) {
       navigate(`/edit/${employee.id}`);
     }
   };
@@ -31,10 +37,20 @@ const EmployeeCard = ({ employee }) => {
     }
   };
 
-  const handleDelete = (e) => {
+  const handleDelete = async (e) => {
     e.stopPropagation();
-    if (window.confirm("Вы уверены, что хотите удалить этого сотрудника?")) {
-      dispatch(updateEmployeeAsync({ ...employee, isDeleted: true }));
+    if (
+      window.confirm(
+        "Вы уверены, что хотите удалить этого сотрудника? Это действие нельзя отменить."
+      )
+    ) {
+      try {
+        await dispatch(deleteEmployeeAsync(employee.id)).unwrap();
+        toast.success("Сотрудник успешно удален");
+      } catch (err) {
+        console.error("Error deleting employee:", err);
+        toast.error("Произошла ошибка при удалении сотрудника");
+      }
     }
   };
 
@@ -66,7 +82,11 @@ const EmployeeCard = ({ employee }) => {
         >
           {employee.isArchive ? "Восстановить" : "Архивировать"}
         </button>
-        <button className="delete" onClick={handleDelete}>
+        <button
+          className="delete-button"
+          onClick={handleDelete}
+          title="Удалить сотрудника"
+        >
           Удалить
         </button>
       </div>

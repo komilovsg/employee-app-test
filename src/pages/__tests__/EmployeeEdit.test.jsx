@@ -66,7 +66,6 @@ describe("EmployeeEdit", () => {
       </Provider>
     );
 
-    // Очищаем поля
     fireEvent.change(screen.getByLabelText(/имя/i), { target: { value: "" } });
     fireEvent.change(screen.getByLabelText(/телефон/i), {
       target: { value: "" },
@@ -78,10 +77,8 @@ describe("EmployeeEdit", () => {
       target: { value: "" },
     });
 
-    // Отправляем форму
     fireEvent.click(screen.getByText(/сохранить/i));
 
-    // Проверяем сообщения об ошибках
     await waitFor(() => {
       expect(
         screen.getByText(/имя обязательно для заполнения/i)

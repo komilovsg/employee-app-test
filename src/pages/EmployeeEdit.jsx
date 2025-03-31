@@ -74,32 +74,37 @@ const EmployeeEdit = () => {
   };
 
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-    let formattedValue = "";
+    let value = e.target.value.replace(/\D/g, "");
 
+    if (value.startsWith("7") || value.startsWith("8")) {
+      value = value.slice(1);
+    }
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+
+    setFormData((prev) => ({ ...prev, phone: value }));
+  };
+
+  const handlePhoneBlur = () => {
+    let value = formData.phone;
+    if (!value) return;
+
+    let formattedValue = "+7 ";
     if (value.length > 0) {
-      formattedValue = "+7 (";
-      if (value.length <= 3) {
-        formattedValue += value;
-      } else if (value.length <= 6) {
-        formattedValue += `${value.slice(0, 3)}) ${value.slice(3)}`;
-      } else if (value.length <= 8) {
-        formattedValue += `${value.slice(0, 3)}) ${value.slice(
-          3,
-          6
-        )}-${value.slice(6)}`;
-      } else {
-        formattedValue += `${value.slice(0, 3)}) ${value.slice(
-          3,
-          6
-        )}-${value.slice(6, 8)}-${value.slice(8, 10)}`;
-      }
+      formattedValue += `(${value.slice(0, 3)}`;
+    }
+    if (value.length > 3) {
+      formattedValue += `) ${value.slice(3, 6)}`;
+    }
+    if (value.length > 6) {
+      formattedValue += `-${value.slice(6, 8)}`;
+    }
+    if (value.length > 8) {
+      formattedValue += `-${value.slice(8, 10)}`;
     }
 
     setFormData((prev) => ({ ...prev, phone: formattedValue }));
-    if (errors.phone) {
-      setErrors((prev) => ({ ...prev, phone: null }));
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -172,13 +177,14 @@ const EmployeeEdit = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="phone">Телефон:</label>
+          <label htmlFor="phone">Телефон (999) 999-99-99:</label>
           <input
             type="tel"
             id="phone"
             value={formData.phone}
             onChange={handlePhoneChange}
-            placeholder="+7 (XXX) XXX-XX-XX"
+            onBlur={handlePhoneBlur}
+            placeholder="(XXX) XXX-XX-XX"
             className={errors.phone ? "error" : ""}
           />
           {errors.phone && (
