@@ -6,7 +6,9 @@ import employeeReducer, {
   setSearchQuery,
   setSortField,
   setSortDirection,
+  setShowArchived,
 } from "../employeeSlice";
+import { describe, it, expect, beforeEach } from "@jest/globals";
 
 describe("employeeSlice", () => {
   let store;
